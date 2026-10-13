@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { PKG_COMPONENTS } from '../data/pkgStructure';
 import { FullEvaluationResult } from '../types/pkg';
-import { calculateComponentScore } from '../utils/calculations';
-import { Sparkles, CheckCheck, RefreshCw, Zap, HelpCircle } from 'lucide-react';
+import { calculateComponentScore, generateScoresForTargetScore } from '../utils/calculations';
+import { Sparkles, CheckCheck, RefreshCw, Zap, HelpCircle, Target, ArrowRight } from 'lucide-react';
 
 interface ScoringViewProps {
   scores: Record<string, number>;
@@ -18,38 +18,25 @@ export const ScoringView: React.FC<ScoringViewProps> = ({
   onBatchSetScores
 }) => {
   const [activeCompetency, setActiveCompetency] = useState<number>(0); // 0 = Semua
+  const [targetScoreInput, setTargetScoreInput] = useState<string>('85');
+
+  // Apply custom target score (e.g. 78, 84, 85, 90)
+  const handleApplyTargetScore = (targetVal: number) => {
+    const generated = generateScoresForTargetScore(targetVal);
+    onBatchSetScores(generated);
+  };
 
   // 1-Click Auto Fill
   const handleAutoFillMax = () => {
-    const updated: Record<string, number> = {};
-    PKG_COMPONENTS.forEach((comp) => {
-      comp.indicators.forEach((ind) => {
-        updated[ind.code] = 2;
-      });
-    });
-    onBatchSetScores(updated);
+    handleApplyTargetScore(100);
   };
 
   const handleAutoFillBaik = () => {
-    // Generates a realistic high "Baik" score (~85-88%)
-    const updated: Record<string, number> = {};
-    PKG_COMPONENTS.forEach((comp) => {
-      comp.indicators.forEach((ind, index) => {
-        // give most 2, but a few 1
-        updated[ind.code] = index % 4 === 1 ? 1 : 2;
-      });
-    });
-    onBatchSetScores(updated);
+    handleApplyTargetScore(88);
   };
 
   const handleAutoFillCukup = () => {
-    const updated: Record<string, number> = {};
-    PKG_COMPONENTS.forEach((comp) => {
-      comp.indicators.forEach((ind, index) => {
-        updated[ind.code] = index % 2 === 0 ? 1 : 2;
-      });
-    });
-    onBatchSetScores(updated);
+    handleApplyTargetScore(72);
   };
 
   const handleResetScores = () => {
@@ -78,58 +65,104 @@ export const ScoringView: React.FC<ScoringViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Auto-Fill Action Toolbar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      {/* Target Score Generator Card */}
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-base font-semibold text-slate-900">
-                Otomatisasi Penilaian Kinerja Guru (79 Indikator)
+              <div className="p-1.5 bg-emerald-600 text-white rounded-lg">
+                <Target className="w-4 h-4" />
+              </div>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                Otomatisasi Nilai Berdasarkan Target Skor (78 / 84 / 85 / 90 / dll.)
               </h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Klik salah satu tombol di bawah untuk mengisi seluruh 79 indikator secara instan, atau sesuaikan per indikator.
+            <p className="text-xs text-slate-600">
+              Cukup pilih atau ketik angka target nilai (skala 100), seluruh 15 komponen dan 79 indikator akan otomatis terisi dan terkalkulasi presisi!
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={handleAutoFillMax}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
-            >
-              <Zap className="w-4 h-4" />
-              Otomatis Nilai Maksimal (Amat Baik 100%)
-            </button>
+          {/* Quick preset buttons requested by user: 78, 84, 85, 90 */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-600 mr-1">Pilihan Cepat:</span>
+            {[
+              { val: 78, label: '78', desc: 'Baik Standar' },
+              { val: 84, label: '84', desc: 'Baik Menengah' },
+              { val: 85, label: '85', desc: 'Baik Tinggi' },
+              { val: 90, label: '90', desc: 'Batas Baik' },
+              { val: 92, label: '92', desc: 'Amat Baik' },
+              { val: 95, label: '95', desc: 'Amat Baik Tinggi' },
+              { val: 100, label: '100', desc: 'Maksimal' },
+            ].map((item) => (
+              <button
+                key={item.val}
+                type="button"
+                onClick={() => {
+                  setTargetScoreInput(String(item.val));
+                  handleApplyTargetScore(item.val);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs ${
+                  evaluation.scale100Score === item.val
+                    ? 'bg-emerald-700 text-white ring-2 ring-emerald-500/50'
+                    : 'bg-white hover:bg-emerald-600 hover:text-white text-slate-800 border border-slate-200'
+                }`}
+                title={`Target Nilai ${item.val} (${item.desc})`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
+        {/* Custom Target Input & Slider */}
+        <div className="mt-4 pt-4 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/70 backdrop-blur-xs p-3.5 rounded-xl border border-white">
+          <div className="flex items-center gap-3 flex-1 max-w-md">
+            <label className="text-xs font-bold text-slate-700 whitespace-nowrap">
+              Input Nilai Bebas:
+            </label>
+            <input
+              type="number"
+              min="25"
+              max="100"
+              value={targetScoreInput}
+              onChange={(e) => setTargetScoreInput(e.target.value)}
+              className="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              placeholder="Misal 85"
+            />
             <button
-              onClick={handleAutoFillBaik}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+              type="button"
+              onClick={() => {
+                const parsed = Number(targetScoreInput);
+                if (!isNaN(parsed) && parsed >= 25 && parsed <= 100) {
+                  handleApplyTargetScore(parsed);
+                } else {
+                  alert('Masukkan nilai antara 25 s/d 100');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
             >
-              <CheckCheck className="w-4 h-4" />
-              Otomatis Nilai Baik (~88%)
+              <span>Terapkan Nilai Ini</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          </div>
 
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleAutoFillCukup}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors"
-            >
-              Nilai Cukup (~70%)
-            </button>
-
-            <button
+              type="button"
               onClick={handleResetScores}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-medium transition-colors"
-              title="Kosongkan semua nilai"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-medium transition-colors"
+              title="Kosongkan semua nilai ke 0"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Reset (0)
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Live Score Summary Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100">
+      {/* Live Score Summary Bar */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
             <span className="text-[11px] text-slate-500 block uppercase font-medium">Total Nilai PKG</span>
             <div className="text-xl font-bold text-slate-800">

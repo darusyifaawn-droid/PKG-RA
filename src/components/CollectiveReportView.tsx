@@ -20,7 +20,15 @@ export const CollectiveReportView: React.FC<CollectiveReportViewProps> = ({
   const { teacher, metadata } = activeRecord;
 
   const handlePrint = () => {
-    window.print();
+    try {
+      window.focus();
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    } catch (err) {
+      console.error(err);
+      alert('Gunakan kombinasi tombol Ctrl + P pada keyboard untuk mencetak.');
+    }
   };
 
   const handleExportCSV = () => {
@@ -43,11 +51,11 @@ export const CollectiveReportView: React.FC<CollectiveReportViewProps> = ({
       const ev = evaluatePKG(rec.scores, rec.creditParams);
       return [
         idx + 1,
-        `"${rec.teacher.name}"`,
+        `"${rec.teacher.name || '-'}"`,
         `"${rec.teacher.nip || '-'}"`,
-        `"${rec.teacher.rankGrade}"`,
+        `"${rec.teacher.rankGrade || '-'}"`,
         `"${rec.teacher.nuptk || '-'}"`,
-        `"${rec.teacher.teachingAssignment}"`,
+        `"${rec.teacher.teachingAssignment || '-'}"`,
         `"${rec.teacher.additionalDuty || '-'}"`,
         rec.creditParams.jm,
         ev.totalComponentScore,
@@ -61,7 +69,8 @@ export const CollectiveReportView: React.FC<CollectiveReportViewProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Laporan_Hasil_Nilai_PKG_${teacher.schoolName.replace(/\s+/g, '_')}_${metadata.year}.csv`);
+    const safeSchool = (teacher.schoolName || 'RA').replace(/\s+/g, '_');
+    link.setAttribute('download', `Laporan_Hasil_Nilai_PKG_${safeSchool}_${metadata.year || '2026'}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

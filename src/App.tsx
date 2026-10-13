@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { TeacherRecord } from './types/pkg';
-import { INITIAL_TEACHER_RECORD, SAMPLE_TEACHERS } from './data/initialData';
+import { INITIAL_TEACHER_RECORD, BLANK_TEACHER_RECORD, SAMPLE_TEACHERS } from './data/initialData';
 import { evaluatePKG } from './utils/calculations';
 import { IdentityForm } from './components/IdentityForm';
 import { ScoringView } from './components/ScoringView';
@@ -13,6 +13,9 @@ import { RecapView } from './components/RecapView';
 import { CollectiveReportView } from './components/CollectiveReportView';
 import { PrintDocument } from './components/PrintDocument';
 import { TeacherManagerModal } from './components/TeacherManagerModal';
+import { LoginPage } from './components/LoginPage';
+import { MultiSchoolModal } from './components/MultiSchoolModal';
+import { KemenagLogo } from './components/KemenagLogo';
 import {
   FileText,
   UserCheck,
@@ -23,13 +26,33 @@ import {
   ChevronRight,
   BookOpen,
   FileSpreadsheet,
-  Building2
+  Building2,
+  LogOut,
+  School,
+  ShieldCheck,
+  RotateCcw
 } from 'lucide-react';
 
-const STORAGE_KEY_RECORDS = 'pkg_ra_records_v2';
-const STORAGE_KEY_ACTIVE = 'pkg_ra_active_id_v2';
+const STORAGE_KEY_RECORDS = 'pkg_ra_records_v5_clean';
+const STORAGE_KEY_ACTIVE = 'pkg_ra_active_id_v5_clean';
+const STORAGE_KEY_AUTH = 'pkg_ra_auth_user_v3';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<{ name: string; role: string; schoolName: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_AUTH);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    // Default logged in for instant access
+    return {
+      name: 'Kepala RA',
+      role: 'Kepala Madrasah / RA',
+      schoolName: ''
+    };
+  });
+
   const [records, setRecords] = useState<TeacherRecord[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
@@ -40,7 +63,8 @@ export default function App() {
     } catch {
       // ignore
     }
-    return SAMPLE_TEACHERS;
+    // Clean blank template for sharing to any school
+    return [BLANK_TEACHER_RECORD];
   });
 
   const [activeId, setActiveId] = useState<string>(() => {
@@ -50,11 +74,49 @@ export default function App() {
     } catch {
       // ignore
     }
-    return records[0]?.id || INITIAL_TEACHER_RECORD.id;
+    return records[0]?.id || BLANK_TEACHER_RECORD.id;
   });
 
   const [activeTab, setActiveTab] = useState<'identity' | 'scoring' | 'recap' | 'collective' | 'print'>('identity');
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+  const [isMultiSchoolModalOpen, setIsMultiSchoolModalOpen] = useState(false);
+
+  const handleClearAllData = () => {
+    if (window.confirm('Kosongkan semua data guru dan madrasah? Data akan direset menjadi template bersih tanpa data apapun, siap dibagikan ke sekolah lain.')) {
+      setRecords([BLANK_TEACHER_RECORD]);
+      setActiveId(BLANK_TEACHER_RECORD.id);
+      try {
+        localStorage.removeItem(STORAGE_KEY_RECORDS);
+        localStorage.removeItem(STORAGE_KEY_ACTIVE);
+      } catch {
+        // ignore
+      }
+      alert('Semua data berhasil dikosongkan. Sistem sekarang bersih dan siap digunakan!');
+    }
+  };
+
+  const handleLoadSampleData = () => {
+    setRecords(SAMPLE_TEACHERS);
+    setActiveId(SAMPLE_TEACHERS[0].id);
+  };
+
+  const handleLogin = (user: { name: string; role: string; schoolName: string }) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(user));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem(STORAGE_KEY_AUTH);
+    } catch {
+      // ignore
+    }
+  };
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -221,23 +283,42 @@ export default function App() {
   // Evaluation calculation for current active teacher
   const evaluation = evaluatePKG(currentRecord.scores, currentRecord.creditParams);
 
+  // If not logged in, show Login Page
+  if (!currentUser) {
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        defaultSchoolName={currentRecord.teacher.schoolName}
+        schoolLogoUrl={currentRecord.teacher.schoolLogoUrl}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Top Bar Header (Hidden in Print) */}
       <header className="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-8">
-            {/* Zone 1: Brand */}
+            {/* Zone 1: Brand with Dynamic School Logo */}
             <div className="flex items-center gap-3 shrink-0">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                PKG
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                {currentRecord.teacher.schoolLogoUrl && currentRecord.teacher.schoolLogoUrl.startsWith('data:image') ? (
+                  <img
+                    src={currentRecord.teacher.schoolLogoUrl}
+                    alt="Logo Sekolah"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <KemenagLogo size={36} />
+                )}
               </div>
               <div>
                 <a href="/" className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap block leading-tight">
-                  PKG Guru RA
+                  {currentRecord.teacher.schoolName || 'PKG Guru RA'}
                 </a>
                 <span className="text-[11px] text-slate-500 block leading-tight">
-                  {currentRecord.teacher.schoolName}
+                  {currentRecord.teacher.foundationName || 'Kepdirjen Pendis 1843/2021'}
                 </span>
               </div>
             </div>
@@ -310,25 +391,47 @@ export default function App() {
               </button>
             </nav>
 
-            {/* Zone 3: Primary Action & Guru Switcher */}
-            <div className="flex items-center gap-2.5 shrink-0">
+            {/* Zone 3: Actions, Multi-School & Logout */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleClearAllData}
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                title="Kosongkan semua data menjadi template bersih agar siap dibagikan ke sekolah lain"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Kosongkan Data</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsMultiSchoolModalOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                title="Panduan agar data antar sekolah tidak tercampur"
+              >
+                <School className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Multi-Sekolah</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsTeacherModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 title="Kelola & ganti data guru"
               >
                 <Users className="w-3.5 h-3.5 text-slate-600" />
                 <span className="hidden sm:inline">Daftar Guru</span> ({records.length})
               </button>
 
+              {/* Logout button */}
               <button
                 type="button"
-                onClick={() => setActiveTab('collective')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors whitespace-nowrap"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                title="Keluar dari akun"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Laporan Hasil</span>
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden xl:inline">Keluar</span>
               </button>
             </div>
           </div>
@@ -490,7 +593,7 @@ export default function App() {
             <RecapView
               record={currentRecord}
               evaluation={evaluation}
-              onGoToPrint={() => setActiveTab('collective')}
+              onGoToPrint={() => setActiveTab('print')}
             />
           </div>
         )}
@@ -537,6 +640,13 @@ export default function App() {
         onAddTeacher={handleAddTeacher}
         onDeleteTeacher={handleDeleteTeacher}
         onImportRecords={handleImportRecords}
+      />
+
+      {/* Multi-School Architecture & Data Isolation Modal */}
+      <MultiSchoolModal
+        isOpen={isMultiSchoolModalOpen}
+        onClose={() => setIsMultiSchoolModalOpen(false)}
+        currentSchoolName={currentRecord.teacher.schoolName}
       />
     </div>
   );

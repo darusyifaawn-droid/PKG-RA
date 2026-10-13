@@ -6,44 +6,82 @@
   }
 }
 
-/* Print styling */
+/* Print styling - Exact A4 Portrait */
 @page {
   size: A4 portrait;
-  margin: 12mm 12mm 12mm 12mm;
+  margin: 0;
 }
 
 @media print {
   html, body {
     background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .no-print {
+  .no-print,
+  header,
+  footer,
+  nav,
+  button,
+  .print-controls {
     display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .print-container {
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
+    overflow: visible !important;
+    display: block !important;
   }
 
   .print-sheets {
     gap: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
   }
 
   .sheet-page {
     border: none !important;
     box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    min-height: auto !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    height: 297mm !important;
     page-break-after: always !important;
     break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    padding: 10mm !important;
+    position: relative !important;
+    background-color: #ffffff !important;
+  }
+
+  .sheet-page.sheet-cover {
+    padding: 10mm !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    box-sizing: border-box !important;
   }
 
   .page-break {
@@ -51,8 +89,9 @@
     break-after: page !important;
   }
 
-  /* Force table borders in print */
+  /* Force sharp borders in print */
   table, th, td {
     border-color: #000000 !important;
   }
 }
+

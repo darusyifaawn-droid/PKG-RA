@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TeacherRecord, FullEvaluationResult } from '../types/pkg';
 import { PKG_COMPONENTS, LEGAL_FOUNDATIONS } from '../data/pkgStructure';
 import { KemenagLogo } from './KemenagLogo';
-import { Printer, Eye, Layers } from 'lucide-react';
+import { Printer, Download, Layers, CheckCircle2, ShieldCheck, Sparkles, HelpCircle } from 'lucide-react';
 
 interface PrintDocumentProps {
   record: TeacherRecord;
@@ -19,38 +19,133 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({
   const { teacher, metadata, creditParams, scores } = record;
 
   const handlePrint = () => {
-    window.print();
+    try {
+      window.focus();
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    } catch (err) {
+      console.error('Print error:', err);
+      alert('Gunakan kombinasi tombol Ctrl + P (atau Cmd + P di Mac) untuk mencetak langsung atau simpan sebagai PDF.');
+    }
   };
 
-  // Group components for instruments layout matching pages 4-13
-  // Page 4: Komponen 1 & Komponen 2 (part 1)
-  // Or render grouped by component cleanly with proper page breaks!
+  const handleDownloadStandaloneHTML = () => {
+    const printArea = document.querySelector('.print-sheets');
+    if (!printArea) {
+      alert('Konten cetak tidak ditemukan.');
+      return;
+    }
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dokumen PKG RA - ${teacher.name || 'Guru RA'} - ${metadata.year || '2026'}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f1f5f9;
+      color: #000000;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .sheet-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      margin: 20px auto;
+      padding: 10mm;
+      background: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+      position: relative;
+    }
+    .sheet-page.sheet-cover {
+      padding: 10mm;
+    }
+    @media print {
+      body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
+      .sheet-page {
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .no-print { display: none !important; }
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-color: #000000; }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="position: sticky; top: 0; background: #065f46; color: white; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+    <div>
+      <strong style="font-size: 14px;">Dokumen Siap Cetak PKG RA (16 Halaman Standar A4)</strong>
+      <div style="font-size: 11px; opacity: 0.9;">File mandiri offline · Buka di Chrome dan tekan tombol di samping untuk mencetak</div>
+    </div>
+    <button onclick="window.print()" style="background: white; color: #065f46; font-weight: bold; border: none; padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+      Cetak / Simpan PDF (Ctrl + P)
+    </button>
+  </div>
+  <div style="padding: 10px 0;">
+    ${printArea.innerHTML}
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeName = (teacher.name || 'Guru_RA').replace(/[^a-zA-Z0-9]/g, '_');
+    link.href = url;
+    link.download = `Dokumen_PKG_RA_${safeName}_${metadata.year || '2026'}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
       {/* Floating / Top Print Control Bar (Hidden on print) */}
-      <div className="no-print bg-white border border-slate-200 rounded-xl p-4 shadow-sm sticky top-4 z-30">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-emerald-600" />
+      <div className="no-print bg-white border border-slate-200 rounded-2xl p-5 shadow-sm sticky top-4 z-30">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
+              <Layers className="w-5 h-5" />
+            </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900">
-                Pilihan Cetak Dokumen Resmi PKG RA
+                Cetak Dokumen Resmi PKG RA (Kepdirjen Pendis 1843/2021)
               </h2>
               <p className="text-xs text-slate-500">
-                Format standar Kepdirjen Pendis No. 1843 Tahun 2021 (Kertas A4 Potret)
+                Format standar Kertas A4 Potret presisi, siap cetak ke printer fisik atau simpan sebagai PDF
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg text-xs font-medium">
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setActivePrintSection('all')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
                   activePrintSection === 'all'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -59,20 +154,20 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({
               <button
                 type="button"
                 onClick={() => setActivePrintSection('summary')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
                   activePrintSection === 'summary'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Rekap & Angka Kredit Saja
+                Rekap & AK Saja
               </button>
               <button
                 type="button"
                 onClick={() => setActivePrintSection('cover')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
                   activePrintSection === 'cover'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -81,25 +176,43 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({
               <button
                 type="button"
                 onClick={() => setActivePrintSection('instruments')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
                   activePrintSection === 'instruments'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Instrumen 1-15 Saja
+                Instrumen 1-15
               </button>
             </div>
 
+            {/* Direct browser print trigger */}
             <button
               onClick={handlePrint}
               type="button"
-              className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              Cetak / Simpan PDF
+              <span>Cetak Sekarang (Ctrl + P)</span>
+            </button>
+
+            {/* Standalone HTML File Download */}
+            <button
+              onClick={handleDownloadStandaloneHTML}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              title="Unduh berkas HTML mandiri untuk dicetak langsung dari Google Chrome di laptop mana saja secara offline"
+            >
+              <Download className="w-4 h-4 text-emerald-700" />
+              <span>Unduh File Cetak Mandiri</span>
             </button>
           </div>
+        </div>
+
+        {/* Helpful Print Notice Banner */}
+        <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-600 flex flex-wrap items-center justify-between gap-2">
+          <span>💡 <strong>Panduan Cetak / PDF:</strong> Pada menu cetak browser Chrome, pilih <strong>Destination: Save as PDF</strong>, atur <strong>Margins: None / Default</strong>, dan centang <strong>Background graphics</strong> agar garis border hijau tercetak presisi.</span>
+          <span className="text-slate-500">Shortcut: <strong>Ctrl + P</strong> (Windows) / <strong>Cmd + P</strong> (Mac)</span>
         </div>
       </div>
 
@@ -108,117 +221,144 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({
         <div className="print-sheets flex flex-col gap-8 w-full max-w-[210mm]">
 
           {/* ======================================================== */}
-          {/* HALAMAN 1: COVER                                         */}
+          {/* HALAMAN 1: COVER (FULL PRESISI & RAPI TANPA OVERFLOW)     */}
           {/* ======================================================== */}
           {(activePrintSection === 'all' || activePrintSection === 'cover') && (
-            <div className="sheet-page bg-white text-black p-[15mm] border border-slate-300 shadow-md relative mx-auto w-[210mm] min-h-[297mm] flex flex-col justify-between font-serif">
-              {/* Outer double border typical of official cover */}
-              <div className="absolute inset-[10mm] border-[3px] border-emerald-700 pointer-events-none">
-                <div className="absolute inset-[3px] border border-emerald-700"></div>
-              </div>
+            <div className="sheet-page sheet-cover bg-white text-black p-[8mm] sm:p-[10mm] border border-slate-300 shadow-xl mx-auto w-[210mm] h-[297mm] max-h-[297mm] flex flex-col font-sans box-border overflow-hidden page-break">
+              {/* Outer Green Border */}
+              <div className="w-full h-full border-[3px] border-emerald-800 p-[3.5px] flex flex-col box-border">
+                {/* Inner Green Border */}
+                <div className="w-full h-full border-[1.5px] border-emerald-800 px-8 py-6 sm:px-10 sm:py-7 flex flex-col justify-between box-border">
+                  
+                  {/* 1. Header Title */}
+                  <div className="text-center pt-1">
+                    <h1 className="text-base sm:text-lg font-black tracking-wider uppercase leading-tight text-slate-950 font-sans">
+                      LAPORAN HASIL PENILAIAN KINERJA GURU (PKG)
+                    </h1>
+                    <h2 className="text-sm sm:text-base font-extrabold tracking-wide uppercase font-sans mt-1 text-slate-900">
+                      GURU RAUDHATUL ATHFAL (RA)
+                    </h2>
+                    <h3 className="text-xs font-bold tracking-wide uppercase font-sans mt-1 text-slate-800">
+                      KEPUTUSAN DIREKTUR JENDERAL PENDIDIKAN ISLAM
+                    </h3>
+                    <h4 className="text-[11px] font-bold tracking-wide uppercase font-sans mt-0.5 text-slate-700">
+                      NOMOR 1843 TAHUN 2021
+                    </h4>
+                    <div className="mt-2.5 inline-block px-4 py-1 bg-emerald-50 border border-emerald-300/80 rounded-full text-[11px] font-semibold text-emerald-950">
+                      Periode Penilaian : {metadata.period || '1 Januari s.d. 31 Desember 2026'}
+                    </div>
+                  </div>
 
-              {/* Header Cover */}
-              <div className="text-center pt-8 z-10">
-                <h1 className="text-xl font-bold tracking-wide uppercase leading-tight font-sans">
-                  Laporan Hasil Penilaian Kinerja Guru (PKG)
-                </h1>
-                <h2 className="text-lg font-bold tracking-wide uppercase font-sans mt-1">
-                  (Guru Raudhatul Athfal)
-                </h2>
-                <h3 className="text-sm font-semibold tracking-wide uppercase font-sans mt-0.5 text-slate-800">
-                  (Kepdirjen Pendis No. 1843 Tahun 2021)
-                </h3>
-                <div className="text-sm font-medium mt-4 font-sans text-slate-700">
-                  Periode Penilaian : {metadata.period}
+                  {/* 2. Logo */}
+                  <div className="flex justify-center my-2">
+                    {teacher.schoolLogoUrl && teacher.schoolLogoUrl.startsWith('data:image') ? (
+                      <img
+                        src={teacher.schoolLogoUrl}
+                        alt="Logo Sekolah / RA"
+                        className="max-h-[130px] max-w-[150px] object-contain drop-shadow-xs"
+                      />
+                    ) : (
+                      <KemenagLogo size={130} />
+                    )}
+                  </div>
+
+                  {/* 3. Biodata Identitas Guru (Kotak Rapi Presisi) */}
+                  <div className="px-4 sm:px-6">
+                    <div className="border border-emerald-800/40 rounded-lg p-3.5 bg-emerald-50/20 text-xs font-sans leading-normal">
+                      <table className="w-full text-left border-none">
+                        <tbody className="space-y-1">
+                          <tr>
+                            <td className="w-36 sm:w-40 py-0.5 font-semibold text-slate-800">Nama Lengkap</td>
+                            <td className="w-4 py-0.5">:</td>
+                            <td className="py-0.5 font-bold uppercase text-slate-950">
+                              {teacher.name || '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">N I P</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">
+                              {teacher.nip || '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">NUPTK / PegID</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">
+                              {teacher.nuptk || '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Pangkat / Gol. Ruang</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">
+                              {teacher.rankGrade || '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Jabatan Guru</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">{teacher.position || 'Guru Kelas'}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Jenis Guru</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">{teacher.teacherType || 'Guru Kelas'}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Tugas yang Diampu</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">{teacher.teachingAssignment || 'Guru Kelas RA'}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Tempat Tugas</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-bold uppercase text-slate-950">
+                              {teacher.schoolName || '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )'}
+                              {teacher.nsm ? ` (NSM: ${teacher.nsm})` : ''}
+                              {teacher.npsn ? ` (NPSN: ${teacher.npsn})` : ''}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-semibold text-slate-800">Unit Kerja</td>
+                            <td className="py-0.5">:</td>
+                            <td className="py-0.5 font-medium">
+                              {teacher.unitOfWork || (teacher.schoolCity ? `Kementerian Agama ${teacher.schoolCity}` : '( . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . )')}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* 4. Instansi Bawah Cover */}
+                  <div className="text-center pb-1 font-sans">
+                    <h4 className="text-xs font-extrabold tracking-wider uppercase text-slate-950">
+                      KEMENTERIAN AGAMA REPUBLIK INDONESIA
+                    </h4>
+                    <h5 className="text-[11px] font-bold tracking-wider uppercase text-slate-900 mt-0.5">
+                      KANTOR KEMENTERIAN AGAMA {teacher.schoolCity ? teacher.schoolCity.toUpperCase() : '( KABUPATEN / KOTA )'}
+                    </h5>
+                    {teacher.kemenagOfficeAddress && (
+                      <p className="text-[9.5px] text-slate-600 mt-1 max-w-md mx-auto leading-tight">
+                        {teacher.kemenagOfficeAddress}
+                      </p>
+                    )}
+                    {teacher.kemenagOfficeContact && (
+                      <p className="text-[9px] text-slate-500 mt-0.5">
+                        {teacher.kemenagOfficeContact}
+                      </p>
+                    )}
+                    <div className="text-xs font-bold text-slate-900 mt-1 tracking-wider">
+                      TAHUN {metadata.year || '2026'}
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-
-              {/* Logo Kemenag / Logo Sekolah */}
-              <div className="flex justify-center my-6 z-10">
-                {teacher.schoolLogoUrl && teacher.schoolLogoUrl.startsWith('data:image') ? (
-                  <img
-                    src={teacher.schoolLogoUrl}
-                    alt="Logo Sekolah / RA"
-                    className="max-h-[190px] max-w-[190px] object-contain"
-                  />
-                ) : (
-                  <KemenagLogo size={190} />
-                )}
-              </div>
-
-              {/* Identitas Guru di Cover */}
-              <div className="px-12 z-10 text-sm font-sans">
-                <table className="w-full text-left border-none">
-                  <tbody className="space-y-1">
-                    <tr>
-                      <td className="w-44 py-1">N a m a</td>
-                      <td className="w-4 py-1">:</td>
-                      <td className="py-1 font-bold">{teacher.name || '-'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">N I P</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.nip || '-'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">NUPTK/PegID</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.nuptk || '-'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Pangkat/Gol. Ruang</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.rankGrade || '-'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Jabatan</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.position || 'Guru Pertama'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Jenis Guru</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.teacherType || 'Guru Kelas'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Mengajar</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.teachingAssignment || 'Guru Kelas RA'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Tempat Tugas</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1 font-semibold">
-                        {teacher.schoolName || '-'}
-                        {teacher.nsm ? ` (NSM: ${teacher.nsm})` : ''}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="py-1">Unit Kerja</td>
-                      <td className="py-1">:</td>
-                      <td className="py-1">{teacher.unitOfWork || `Kementerian Agama ${teacher.schoolCity}`}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Instansi Bawah Cover */}
-              <div className="text-center pb-8 z-10 font-sans">
-                <h4 className="text-sm font-bold tracking-wider uppercase text-slate-900">
-                  Kementerian Agama Republik Indonesia
-                </h4>
-                <h5 className="text-xs font-bold tracking-wider uppercase text-slate-800 mt-0.5">
-                  Kantor Kementerian Agama {teacher.schoolCity}
-                </h5>
-                <p className="text-[11px] text-slate-600 mt-1 max-w-md mx-auto">
-                  {teacher.kemenagOfficeAddress}
-                </p>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  {teacher.kemenagOfficeContact}
-                </p>
               </div>
             </div>
           )}
+
 
           {/* ======================================================== */}
           {/* HALAMAN 2: HALAMAN PERSETUJUAN                           */}

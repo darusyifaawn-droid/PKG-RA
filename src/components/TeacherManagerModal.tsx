@@ -37,13 +37,14 @@ export const TeacherManagerModal: React.FC<TeacherManagerModalProps> = ({
       teacher: {
         ...current.teacher,
         id: newId,
-        name: 'Nama Guru Baru, S.Pd',
-        nip: '-',
-        nuptk: '-'
+        name: '',
+        nip: '',
+        nuptk: '',
+        additionalDuty: ''
       },
       metadata: { ...current.metadata },
       creditParams: { ...current.creditParams },
-      scores: createDefaultScores(2)
+      scores: createDefaultScores(0)
     };
     onAddTeacher(newRecord);
   };

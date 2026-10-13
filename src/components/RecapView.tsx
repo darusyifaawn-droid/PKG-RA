@@ -303,6 +303,24 @@ export const RecapView: React.FC<RecapViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Navigation Buttons to Print & Collective Report */}
+      <div className="no-print flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+        <div className="text-xs text-slate-500">
+          Semua penghitungan di atas telah sesuai rumus resmi Permen PAN-RB No 16/2009.
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onGoToPrint}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Lanjut ke Cetak Berkas Lengkap (16 Halaman)</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
