@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { TeacherInfo, AssessmentMetadata, CreditScoreParams } from '../types/pkg';
 import { GOLONGAN_PRESETS } from '../utils/calculations';
 import { KopSurat } from './KopSurat';
+import { KemenagLogo } from './KemenagLogo';
 import {
   Building2,
   UserCheck,
@@ -123,7 +124,7 @@ export const IdentityForm: React.FC<IdentityFormProps> = ({
         {/* Logo Upload & Controls */}
         <div className="mb-6 p-4 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white border border-slate-200 rounded-lg flex items-center justify-center p-1 overflow-hidden shrink-0">
+            <div className="w-16 h-16 bg-white border border-slate-200 rounded-lg flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs">
               {teacher.schoolLogoUrl && teacher.schoolLogoUrl.startsWith('data:image') ? (
                 <img
                   src={teacher.schoolLogoUrl}
@@ -131,9 +132,7 @@ export const IdentityForm: React.FC<IdentityFormProps> = ({
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="text-[10px] text-center font-bold text-emerald-800">
-                  Logo Kemenag
-                </div>
+                <KemenagLogo size={52} />
               )}
             </div>
             <div>

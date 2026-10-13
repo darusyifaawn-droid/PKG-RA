@@ -2,6 +2,7 @@ import React from 'react';
 import { TeacherRecord } from '../types/pkg';
 import { evaluatePKG } from '../utils/calculations';
 import { KopSurat } from './KopSurat';
+import { KemenagLogo } from './KemenagLogo';
 import {
   FileSpreadsheet,
   Users,
@@ -119,8 +120,8 @@ export const CollectiveReportView: React.FC<CollectiveReportViewProps> = ({
         {/* 1. Card Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
           <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <FileSpreadsheet className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200/80 p-1 flex items-center justify-center shrink-0 shadow-xs">
+              <KemenagLogo size={40} />
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">
