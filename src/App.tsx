@@ -30,12 +30,13 @@ import {
   LogOut,
   School,
   ShieldCheck,
-  RotateCcw
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
 
-const STORAGE_KEY_RECORDS = 'pkg_ra_records_v5_clean';
-const STORAGE_KEY_ACTIVE = 'pkg_ra_active_id_v5_clean';
-const STORAGE_KEY_AUTH = 'pkg_ra_auth_user_v3';
+const STORAGE_KEY_RECORDS = 'pkg_ra_records_v8_darusyifa';
+const STORAGE_KEY_ACTIVE = 'pkg_ra_active_id_v8_darusyifa';
+const STORAGE_KEY_AUTH = 'pkg_ra_auth_user_v4';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<{ name: string; role: string; schoolName: string } | null>(() => {
@@ -49,7 +50,7 @@ export default function App() {
     return {
       name: 'Kepala RA',
       role: 'Kepala Madrasah / RA',
-      schoolName: ''
+      schoolName: 'RA Darusyifa Arjawinangun'
     };
   });
 
@@ -63,8 +64,8 @@ export default function App() {
     } catch {
       // ignore
     }
-    // Clean blank template for sharing to any school
-    return [BLANK_TEACHER_RECORD];
+    // Default matching user screenshot (Siti Aminah, RA Darusyifa Arjawinangun)
+    return [INITIAL_TEACHER_RECORD];
   });
 
   const [activeId, setActiveId] = useState<string>(() => {
@@ -74,10 +75,10 @@ export default function App() {
     } catch {
       // ignore
     }
-    return records[0]?.id || BLANK_TEACHER_RECORD.id;
+    return records[0]?.id || INITIAL_TEACHER_RECORD.id;
   });
 
-  const [activeTab, setActiveTab] = useState<'identity' | 'scoring' | 'recap' | 'collective' | 'print'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'scoring' | 'recap' | 'collective' | 'print'>('collective');
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
   const [isMultiSchoolModalOpen, setIsMultiSchoolModalOpen] = useState(false);
 
@@ -300,140 +301,81 @@ export default function App() {
       <header className="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-8">
-            {/* Zone 1: Brand with Dynamic School Logo */}
+            {/* Zone 1: Brand with Official Kemenag Logo */}
             <div className="flex items-center gap-3 shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
-                {currentRecord.teacher.schoolLogoUrl && currentRecord.teacher.schoolLogoUrl.startsWith('data:image') ? (
-                  <img
-                    src={currentRecord.teacher.schoolLogoUrl}
-                    alt="Logo Sekolah"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <KemenagLogo size={36} />
-                )}
-              </div>
-              <div>
-                <a href="/" className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap block leading-tight">
-                  {currentRecord.teacher.schoolName || 'PKG Guru RA'}
-                </a>
-                <span className="text-[11px] text-slate-500 block leading-tight">
-                  {currentRecord.teacher.foundationName || 'Kepdirjen Pendis 1843/2021'}
+              <KemenagLogo size={42} />
+              <div className="leading-tight">
+                <span className="text-lg font-black tracking-tight text-emerald-900 whitespace-nowrap block">
+                  PKG Guru RA
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap block">
+                  Kepdirjen Pendis 1843/2021
                 </span>
               </div>
             </div>
 
             {/* Zone 2: Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1 text-xs font-medium">
+            <nav className="hidden lg:flex items-center gap-1.5 text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setActiveTab('identity')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   activeTab === 'identity'
-                    ? 'bg-emerald-50 text-emerald-800 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>1. Identitas & Kop Surat</span>
+                1. Identitas & Kop Surat
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('scoring')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   activeTab === 'scoring'
-                    ? 'bg-emerald-50 text-emerald-800 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                <span>2. Nilai Otomatis</span>
+                2. Nilai Otomatis
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('recap')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   activeTab === 'recap'
-                    ? 'bg-emerald-50 text-emerald-800 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Award className="w-3.5 h-3.5" />
-                <span>3. Rekap & AK Guru</span>
+                3. Rekap & AK Guru
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('collective')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   activeTab === 'collective'
-                    ? 'bg-emerald-600 text-white font-bold shadow-xs'
-                    : 'text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 font-semibold'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>4. Laporan Hasil Kolektif</span>
+                4. Laporan Hasil Kolektif
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('print')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   activeTab === 'print'
-                    ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 font-medium'
+                    ? 'bg-emerald-700 text-white font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Printer className="w-3.5 h-3.5" />
-                <span>5. Berkas Lengkap (16 Hal)</span>
+                5. Berkas Lengkap (16 Hal)
               </button>
             </nav>
-
-            {/* Zone 3: Actions, Multi-School & Logout */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleClearAllData}
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                title="Kosongkan semua data menjadi template bersih agar siap dibagikan ke sekolah lain"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Kosongkan Data</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsMultiSchoolModalOpen(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                title="Panduan agar data antar sekolah tidak tercampur"
-              >
-                <School className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Multi-Sekolah</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsTeacherModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                title="Kelola & ganti data guru"
-              >
-                <Users className="w-3.5 h-3.5 text-slate-600" />
-                <span className="hidden sm:inline">Daftar Guru</span> ({records.length})
-              </button>
-
-              {/* Logout button */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                title="Keluar dari akun"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Keluar</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -442,7 +384,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('identity')}
             className={`px-2.5 py-1.5 rounded whitespace-nowrap ${
-              activeTab === 'identity' ? 'bg-white font-bold text-slate-900 shadow-xs' : 'text-slate-600'
+              activeTab === 'identity' ? 'bg-emerald-700 text-white font-bold shadow-xs' : 'text-slate-600'
             }`}
           >
             1. Identitas
@@ -450,7 +392,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('scoring')}
             className={`px-2.5 py-1.5 rounded whitespace-nowrap ${
-              activeTab === 'scoring' ? 'bg-white font-bold text-emerald-700 shadow-xs' : 'text-slate-600'
+              activeTab === 'scoring' ? 'bg-emerald-700 text-white font-bold shadow-xs' : 'text-slate-600'
             }`}
           >
             2. Nilai
@@ -458,7 +400,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('recap')}
             className={`px-2.5 py-1.5 rounded whitespace-nowrap ${
-              activeTab === 'recap' ? 'bg-white font-bold text-slate-900 shadow-xs' : 'text-slate-600'
+              activeTab === 'recap' ? 'bg-emerald-700 text-white font-bold shadow-xs' : 'text-slate-600'
             }`}
           >
             3. Rekap
@@ -466,7 +408,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('collective')}
             className={`px-2.5 py-1.5 rounded whitespace-nowrap font-bold ${
-              activeTab === 'collective' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 bg-emerald-100/50'
+              activeTab === 'collective' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600'
             }`}
           >
             4. Laporan Hasil Kolektif
@@ -474,7 +416,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('print')}
             className={`px-2.5 py-1.5 rounded whitespace-nowrap ${
-              activeTab === 'print' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600'
+              activeTab === 'print' ? 'bg-emerald-700 text-white font-bold shadow-xs' : 'text-slate-600'
             }`}
           >
             5. Cetak (16 Hal)
@@ -484,57 +426,102 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-        {/* Active Teacher Banner Summary (Hidden on Print) */}
-        <div className="no-print bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm shrink-0">
-              {currentRecord.teacher.name.charAt(0) || 'G'}
+        {/* Top-Right Sub-Row Action Buttons (Matching Screenshot) */}
+        <div className="no-print flex flex-wrap items-center justify-end gap-2.5 mb-6">
+          <button
+            type="button"
+            onClick={handleClearAllData}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-emerald-400 hover:border-emerald-500 bg-white hover:bg-emerald-50/50 text-emerald-800 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Kosongkan semua data menjadi template bersih"
+          >
+            <Trash2 className="w-4 h-4 text-emerald-700" />
+            <span>Kosongkan Data</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMultiSchoolModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-emerald-400 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Panduan agar data antar sekolah tidak tercampur"
+          >
+            <School className="w-4 h-4 text-emerald-700" />
+            <span>Multi-Sekolah</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsTeacherModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-emerald-400 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Kelola & ganti data guru"
+          >
+            <Users className="w-4 h-4 text-emerald-700" />
+            <span>Daftar Guru ({records.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-rose-300 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Keluar dari akun"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Keluar</span>
+          </button>
+        </div>
+
+        {/* Active Teacher Banner Summary (Shown on individual assessment tabs only) */}
+        {activeTab !== 'collective' && activeTab !== 'print' && (
+          <div className="no-print bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm shrink-0">
+                {currentRecord.teacher.name.charAt(0) || 'G'}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-sm sm:text-base font-bold text-slate-900">
+                    {currentRecord.teacher.name || 'Nama Guru Belum Diisi'}
+                  </h1>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {currentRecord.teacher.rankGrade}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 mt-0.5">
+                  <span>Tempat Tugas: <strong className="text-slate-700">{currentRecord.teacher.schoolName || '-'}</strong></span>
+                  <span>·</span>
+                  <span>NSM: <strong className="text-slate-700">{currentRecord.teacher.nsm || '-'}</strong></span>
+                  <span>·</span>
+                  <span>NPSN: <strong className="text-slate-700">{currentRecord.teacher.npsn || '-'}</strong></span>
+                  <span>·</span>
+                  <span>NIP: <strong className="text-slate-700">{currentRecord.teacher.nip || '-'}</strong></span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-slate-900">
-                  {currentRecord.teacher.name || 'Nama Guru Belum Diisi'}
-                </h1>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  {currentRecord.teacher.rankGrade}
+
+            {/* Quick Metrics */}
+            <div className="flex items-center gap-3 self-end md:self-auto shrink-0 text-xs">
+              <div className="text-right">
+                <span className="text-[11px] text-slate-400 block uppercase font-medium">Nilai PKG</span>
+                <span className="font-extrabold text-sm text-slate-900 tabular-nums">
+                  {evaluation.totalComponentScore} / 60 ({evaluation.scale100Score}%)
                 </span>
               </div>
-              <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 mt-0.5">
-                <span>Tempat Tugas: <strong className="text-slate-700">{currentRecord.teacher.schoolName || '-'}</strong></span>
-                <span>·</span>
-                <span>NSM: <strong className="text-slate-700">{currentRecord.teacher.nsm || '-'}</strong></span>
-                <span>·</span>
-                <span>NPSN: <strong className="text-slate-700">{currentRecord.teacher.npsn || '-'}</strong></span>
-                <span>·</span>
-                <span>NIP: <strong className="text-slate-700">{currentRecord.teacher.nip || '-'}</strong></span>
+              <div className="h-8 w-px bg-slate-200"></div>
+              <div className="text-right">
+                <span className="text-[11px] text-slate-400 block uppercase font-medium">Sebutan</span>
+                <span className="font-extrabold text-sm text-emerald-700">
+                  {evaluation.predicate} ({evaluation.npkPercent}%)
+                </span>
+              </div>
+              <div className="h-8 w-px bg-slate-200"></div>
+              <div className="text-right">
+                <span className="text-[11px] text-slate-400 block uppercase font-medium">Angka Kredit</span>
+                <span className="font-extrabold text-sm text-blue-700 tabular-nums">
+                  {evaluation.annualCreditScore}
+                </span>
               </div>
             </div>
           </div>
-
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-3 self-end md:self-auto shrink-0 text-xs">
-            <div className="text-right">
-              <span className="text-[11px] text-slate-400 block uppercase font-medium">Nilai PKG</span>
-              <span className="font-extrabold text-sm text-slate-900 tabular-nums">
-                {evaluation.totalComponentScore} / 60 ({evaluation.scale100Score}%)
-              </span>
-            </div>
-            <div className="h-8 w-px bg-slate-200"></div>
-            <div className="text-right">
-              <span className="text-[11px] text-slate-400 block uppercase font-medium">Sebutan</span>
-              <span className="font-extrabold text-sm text-emerald-700">
-                {evaluation.predicate} ({evaluation.npkPercent}%)
-              </span>
-            </div>
-            <div className="h-8 w-px bg-slate-200"></div>
-            <div className="text-right">
-              <span className="text-[11px] text-slate-400 block uppercase font-medium">Angka Kredit</span>
-              <span className="font-extrabold text-sm text-blue-700 tabular-nums">
-                {evaluation.annualCreditScore}
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Tab Views */}
         {activeTab === 'identity' && (
@@ -605,6 +592,11 @@ export default function App() {
               activeRecord={currentRecord}
               onSelectTeacher={setActiveId}
               onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+              onEditTeacher={(id) => {
+                setActiveId(id);
+                setActiveTab('identity');
+              }}
+              onDeleteTeacher={handleDeleteTeacher}
             />
           </div>
         )}
